@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inilah Agama Ini — هذا الدين — Paired Reader</title>
+<style>
+  :root{
+    --fs:18px;
+    --bg:#f6f3ea; --fg:#29251c; --trfg:#4c5a44; --faint:#8f8674;
+    --line:#ddd4c1; --accent:#8a6d1f;
+    --btn:#fffdf8; --btnbd:#cfc4ad;
+    color-scheme:light;
+  }
+  :root[data-theme="dark"]{
+    --bg:#14110d; --fg:#e9e3d3; --trfg:#a9c39a; --faint:#7d7360;
+    --line:#38322a; --accent:#d9b45c;
+    --btn:#201c15; --btnbd:#4c4436;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:var(--fs)/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+  .top{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;
+    padding:.45rem .6rem;background:var(--bg);border-bottom:1px solid var(--line);}
+  .brand{font-weight:650;font-size:.95rem;white-space:nowrap;overflow:hidden;
+    text-overflow:ellipsis;max-width:40vw}
+  .brand .ar{font-family:"Amiri","Noto Naskh Arabic",serif;direction:rtl;unicode-bidi:embed}
+  .spacer{flex:1}
+  button{font:inherit;font-size:.85rem;cursor:pointer;border:1px solid var(--btnbd);
+    border-radius:8px;background:var(--btn);color:var(--fg);padding:.32rem .6rem;line-height:1.2}
+  button:hover:not(:disabled){border-color:var(--accent)}
+  button:disabled{opacity:.35;cursor:default}
+  main{max-width:44rem;margin:0 auto;padding:1.4rem 1.2rem 5rem}
+  .bookhead{margin:0 0 1.2rem;padding-bottom:1rem;border-bottom:1px solid var(--line)}
+  .bookhead h1{margin:0;font-size:1.35rem;font-weight:650;line-height:1.7}
+  .bookhead h1 .ar{font-family:"Amiri","Noto Naskh Arabic",serif;direction:rtl;unicode-bidi:embed}
+  .note{margin:.4rem 0 0;font-size:.82rem;font-style:italic;color:var(--faint);line-height:1.5}
+  .unit{margin:0 0 1.5rem}
+  .unit .ar{font-family:"Amiri","Noto Naskh Arabic","Scheherazade New",serif;
+    font-size:1.12em;line-height:2.05;color:var(--fg);margin:0 0 .35rem;
+    overflow-wrap:break-word}
+  .trgroup{margin:.1rem 0 .3rem .4rem}
+  .trlabel{display:inline-block;font-size:.68rem;font-weight:700;letter-spacing:.08em;
+    color:var(--accent);border:1px solid var(--line);border-radius:5px;
+    padding:.05rem .4rem;margin-bottom:.15rem;background:var(--btn)}
+  .trgroup p{font-family:Georgia,"Iowan Old Style","Times New Roman",serif;
+    font-size:.95em;line-height:1.72;color:var(--trfg);margin:0 0 .4rem;
+    border-inline-start:2px solid var(--line);padding-inline-start:.8rem;
+    overflow-wrap:break-word}
+  .trgroup p:last-child{margin-bottom:0}
+  .status{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;gap:.8rem;
+    align-items:center;justify-content:center;background:var(--bg);color:var(--faint);
+    padding:2rem;text-align:center}
+  .status p{margin:0}
+  .status button{margin-top:.4rem}
+</style>
+</head>
+<body>
+<header class="top">
+  <span class="brand" id="brand"></span>
+  <span class="spacer"></span>
+  <button id="fsDown" type="button" title="Decrease font size">A−</button>
+  <button id="fsUp" type="button" title="Increase font size">A+</button>
+  <button id="theme" type="button" title="Toggle light/dark theme">Light</button>
+</header>
+<main id="main"></main>
+<div class="status" id="status" role="status">Loading…</div>
+<noscript><p style="padding:1rem">This reader requires JavaScript.</p></noscript>
+<script src="data.js"></script>
+<script>
+(function () {
+  'use strict';
+  function $(id) { return document.getElementById(id); }
+  var fsDown = $('fsDown'), fsUp = $('fsUp'), themeBtn = $('theme');
+  var main = $('main'), status = $('status'), brand = $('brand');
+  var FS_MIN = 15, FS_MAX = 26, FS_STEP = 1;
+  var KEY = 'paired-reader-hadha-al-din';
+  var prefs = { fs: 18, theme: '' };
+  try {
+    var saved = JSON.parse(localStorage.getItem(KEY) || '{}');
+    if (typeof saved.fs === 'number') prefs.fs = saved.fs;
+    if (saved.theme === 'light' || saved.theme === 'dark') prefs.theme = saved.theme;
+  } catch (e) {}
+  function savePrefs() {
+    try { localStorage.setItem(KEY, JSON.stringify(prefs)); } catch (e) {}
+  }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function systemTheme() {
+    return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  }
+  function applyTheme(t, remember) {
+    document.documentElement.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? 'Dark' : 'Light';
+    themeBtn.setAttribute('aria-pressed', String(t === 'dark'));
+    if (remember) { prefs.theme = t; savePrefs(); }
+  }
+  function applyPrefs() {
+    document.documentElement.style.setProperty('--fs', prefs.fs + 'px');
+    fsDown.disabled = prefs.fs <= FS_MIN;
+    fsUp.disabled = prefs.fs >= FS_MAX;
+    applyTheme(prefs.theme || systemTheme(), false);
+  }
+  themeBtn.addEventListener('click', function () {
+    applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', true);
+  });
+  if (window.matchMedia) {
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    var mqHandler = function (e) { if (!prefs.theme) applyTheme(e.matches ? 'dark' : 'light', false); };
+    if (mq.addEventListener) mq.addEventListener('change', mqHandler);
+    else if (mq.addListener) mq.addListener(mqHandler);
+  }
+  fsDown.addEventListener('click', function () {
+    if (prefs.fs > FS_MIN) { prefs.fs -= FS_STEP; applyPrefs(); savePrefs(); }
+  });
+  fsUp.addEventListener('click', function () {
+    if (prefs.fs < FS_MAX) { prefs.fs += FS_STEP; applyPrefs(); savePrefs(); }
+  });
+
+  function render() {
+    var book = window.READER_DATA;
+    if (!book || !book.units) return;
+    document.title = book.title_tr + ' — ' + book.title_ar;
+    var arSp = el('span', 'ar', book.title_ar);
+    arSp.setAttribute('dir', 'rtl'); arSp.setAttribute('lang', 'ar');
+    brand.textContent = '';
+    brand.appendChild(arSp);
+    brand.appendChild(document.createTextNode(' · ' + book.title_tr));
+
+    var frag = document.createDocumentFragment();
+    var head = el('header', 'bookhead'), h = el('h1');
+    var arH = el('span', 'ar', book.title_ar);
+    arH.setAttribute('dir', 'rtl'); arH.setAttribute('lang', 'ar');
+    h.appendChild(arH);
+    h.appendChild(document.createTextNode(' — ' + book.title_tr));
+    head.appendChild(h);
+    var labels = (book.langs || []).map(function (l) { return l.label; }).join(' · ');
+    head.appendChild(el('p', 'note',
+      'Arabic original with ' + labels + ' translation(s), aligned block by block. ' +
+      (book.approx ? 'Some sections use approximate (proportional) alignment.' : '')));
+    frag.appendChild(head);
+
+    var pageIds = {};
+    var units = book.units;
+    for (var i = 0; i < units.length; i++) {
+      var u = units[i], sec = el('section', 'unit');
+      sec.id = 'u-' + i;
+      var ar = u.ar || {};
+      var ap = el('p', 'ar', ar.t || '');
+      ap.setAttribute('dir', 'rtl'); ap.setAttribute('lang', 'ar');
+      if (typeof ar.p === 'number' && !(ar.p in pageIds)) {
+        pageIds[ar.p] = 'u-' + i;
+      }
+      sec.appendChild(ap);
+      var tr = u.tr || {};
+      for (var k in tr) {
+        var blocks = tr[k];
+        if (!blocks || !blocks.length) continue;
+        var g = el('div', 'trgroup');
+        var lab = el('span', 'trlabel', (book._labels && book._labels[k]) || k.toUpperCase());
+        g.appendChild(lab);
+        for (var j = 0; j < blocks.length; j++) {
+          var bp = el('p', null, blocks[j].t || '');
+          bp.setAttribute('dir', 'ltr');
+          g.appendChild(bp);
+        }
+        sec.appendChild(g);
+      }
+      frag.appendChild(sec);
+    }
+    main.textContent = '';
+    main.appendChild(frag);
+    window._PAGE_IDS = pageIds;
+    scrollToHash();
+  }
+
+  function scrollToHash() {
+    var h = (location.hash || '').replace(/^#/, '');
+    var target = null;
+    if (h.indexOf('pg-') === 0) {
+      var p = window._PAGE_IDS && window._PAGE_IDS[parseInt(h.slice(3), 10)];
+      if (p) target = document.getElementById(p);
+    } else if (h.indexOf('u-') === 0) {
+      target = document.getElementById(h);
+    }
+    if (target) target.scrollIntoView();
+  }
+  window.addEventListener('hashchange', scrollToHash);
+
+  try {
+    applyPrefs();
+    render();
+    status.parentNode.removeChild(status);
+  } catch (e) {
+    status.textContent = '';
+    status.appendChild(el('p', null, 'Could not render the book: ' + e.message));
+  }
+})();
+</script>
+</body>
+</html>

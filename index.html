@@ -36,6 +36,9 @@
   <h1>مكتبة إسلامية</h1>
   <div class="sub">Islamic study library — bilingual readers (Arabic · English · Bahasa Melayu · Indonesia). Clean digital texts where available; Gemini-vision OCR for scans. Tap a book to read.</div>
 
+  <h2>قراءة مقترنة <span class="en">Paired reading — Arabic with translation inline</span></h2>
+  <div class="grid" id="paired"></div>
+
   <h2>الكتب العربية <span class="en">Arabic originals</span></h2>
   <div class="grid" id="ar"></div>
 
@@ -104,6 +107,16 @@ const TR=[
  ["tafsir-stam-2021","التفسير وعلومه","Tafsir wa Ulumuhu · STAM 2021 · BM",49,"ms"],
  ["hadis-hafazan","حافظان — حديث","Hadis Hafazan · BM/AR bilingual",3,"ms"],
 ];
+const PAIRED=[
+ ["hadha-al-din","هذا الدين","Hadha ad-Din · Sayyid Qutb","AR ⇄ BM"],
+ ["khuluq-al-muslim","خلق المسلم","Khuluq al-Muslim · al-Ghazali","AR ⇄ EN"],
+ ["matha-yaani-yakan","ماذا يعني انتمائي للإسلام","Matha Ya'ni Intimai · Fathi Yakan","AR ⇄ BM"],
+ ["matn-taalim-banna","رسالة التعاليم (المتن)","Risalat at-Ta'alim · Hasan al-Banna","AR ⇄ EN"],
+];
+document.getElementById('paired').innerHTML = PAIRED.map(a=>{
+  const [slug,ar,en,langs]=a;
+  return `<a class="book" href="readers-paired/${slug}/"><div class="t">${ar} <small>· ${en}</small></div><div class="meta"><span class="badge" style="color:#6a4fb3">paired</span> ${langs}</div></a>`;
+}).join('');
 const LANG={en:"English",ms:"Bahasa Melayu",id:"Bahasa Indonesia","ms-id":"Melayu/Indonesia"};
 function card(a){
   const [slug,ar,en,pages,kind]=a;
