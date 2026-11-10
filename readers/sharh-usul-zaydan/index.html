@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sharh Usul Zaydan — Reader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --fs:18px;
+    --bg:#f6f3ea; --fg:#29251c; --enfg:#5f5747; --faint:#8f8674;
+    --line:#ddd4c1; --accent:#8a6d1f;
+    --btn:#fffdf8; --btnbd:#cfc4ad;
+    color-scheme:light;
+  }
+  :root[data-theme="dark"]{
+    --bg:#14110d; --fg:#e9e3d3; --enfg:#bfb59d; --faint:#7d7360;
+    --line:#38322a; --accent:#d9b45c;
+    --btn:#201c15; --btnbd:#4c4436;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:var(--fs)/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+  .top{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;
+    padding:.45rem .6rem;background:var(--bg);border-bottom:1px solid var(--line);}
+  .brand{flex:1 1 auto;min-width:0;font-weight:650;font-size:.95rem;color:var(--fg);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #jump{flex:1 1 10rem;min-width:0;font:inherit;font-size:.85rem;padding:.32rem .5rem;
+    border:1px solid var(--btnbd);border-radius:8px;background:var(--btn);color:var(--fg)}
+  button{font:inherit;font-size:.85rem;cursor:pointer;border:1px solid var(--btnbd);
+    border-radius:8px;background:var(--btn);color:var(--fg);padding:.32rem .6rem;line-height:1.2}
+  button:hover:not(:disabled){border-color:var(--accent)}
+  button:disabled{opacity:.35;cursor:default}
+  main{max-width:42rem;margin:0 auto;padding:1.6rem 1.2rem 5rem}
+  .bookhead{margin:0 0 1.4rem;padding-bottom:1rem;border-bottom:1px solid var(--line)}
+  .bookhead h1{margin:0;font-size:1.4rem;font-weight:650;line-height:1.6}
+  .note{margin:.45rem 0 0;font-size:.82rem;font-style:italic;color:var(--faint);line-height:1.5}
+  .pagemark{margin:2.8rem 0 .9rem;text-align:center;font-size:.8rem;color:var(--faint);
+    scroll-margin-top:3.6rem}
+  .pagemark a{color:var(--faint);text-decoration:none}
+  .pagemark .pgnum{border-bottom:1px dotted var(--line);padding-bottom:1px}
+  .pagemark .pgnum:hover{color:var(--fg)}
+  .pgimg{margin-inline-start:.55rem;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase}
+  .pgimg:hover{color:var(--fg)}
+  p.ar{font-family:"Amiri","Scheherazade New","Noto Naskh Arabic",serif;
+    font-size:1.15em;line-height:2.05;color:var(--fg);margin:0 0 .55rem;overflow-wrap:break-word}
+  p.en{font-family:Georgia,"Iowan Old Style","Times New Roman",serif;font-size:.95em;
+    line-height:1.75;color:var(--enfg);margin:0 0 .55rem;overflow-wrap:break-word}
+  .empty{margin:1.5rem 0;text-align:center;color:var(--faint);font-size:.85rem;font-style:italic}
+  @media (max-width:560px){
+    .bookhead h1{font-size:1.15rem}
+    .brand{font-size:.85rem}
+    #jump{font-size:.8rem}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <span class="brand">Sharh Usul Zaydan</span>
+  <select id="jump" aria-label="Jump to page" disabled><option>Pages&#8230;</option></select>
+  <button id="fsDown" type="button" title="Decrease font size">A&#8722;</button>
+  <button id="fsUp" type="button" title="Increase font size">A+</button>
+  <button id="theme" type="button" title="Toggle light/dark theme">Light</button>
+</header>
+<main id="main"></main>
+<noscript><p style="padding:1rem">This reader requires JavaScript.</p></noscript>
+<script src="data.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var D = window.READER_DATA;
+  var main = document.getElementById('main');
+  var jump = document.getElementById('jump');
+  var fsDown = document.getElementById('fsDown');
+  var fsUp = document.getElementById('fsUp');
+  var themeBtn = document.getElementById('theme');
+
+  if (!D || !D.pages || !D.pages.length) {
+    main.innerHTML = '<p class="empty">Could not load book data (data.js missing or invalid).</p>';
+    return;
+  }
+
+  var AR = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+  var FS_MIN = 15, FS_MAX = 26, FS_STEP = 1;
+  var KEY = 'libocr-reader-' + (D.slug || 'book');
+
+  var prefs = { fs: 18, theme: '' };
+  try {
+    var saved = JSON.parse(localStorage.getItem(KEY) || '{}');
+    if (typeof saved.fs === 'number') prefs.fs = saved.fs;
+    if (saved.theme === 'light' || saved.theme === 'dark') prefs.theme = saved.theme;
+  } catch (e) {}
+
+  function savePrefs() {
+    try { localStorage.setItem(KEY, JSON.stringify(prefs)); } catch (e) {}
+  }
+
+  function arDigits(n) {
+    return String(n).replace(/[0-9]/g, function (d) { return '٠١٢٣٤٥٦٧٨٩'[d]; });
+  }
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  /* ---------- render ---------- */
+
+  function render() {
+    var frag = document.createDocumentFragment();
+
+    var head = el('header', 'bookhead'), h = el('h1', null, D.title || '');
+    head.appendChild(h);
+    var note = D.pages.length + ' pages · ';
+    if (D.clean) {
+      note += 'clean digital edition — not OCR of the scan';
+      if (D.clean_src) note += ' · source: ' + D.clean_src;
+      note += '.';
+    } else {
+      note += 'OCR text — page scans not included.';
+    }
+    head.appendChild(el('p', 'note', note));
+    frag.appendChild(head);
+
+    for (var i = 0; i < D.pages.length; i++) {
+      var pg = D.pages[i];
+      var m = el('div', 'pagemark');
+      m.id = 'pg-' + pg.n;
+      if (pg.img) m.setAttribute('data-img', pg.img);
+      var a = el('a', 'pgnum', '— ' + arDigits(pg.n) + ' —');
+      a.href = '#pg-' + pg.n;
+      a.title = 'page ' + pg.n;
+      m.appendChild(a);
+      if (pg.img) {
+        var im = el('a', 'pgimg', 'img');
+        im.href = pg.img;
+        im.target = '_blank';
+        im.rel = 'noopener';
+        im.title = 'open page scan';
+        m.appendChild(im);
+      }
+      frag.appendChild(m);
+
+      var paras = pg.paras || [];
+      if (!paras.length) {
+        frag.appendChild(el('p', 'empty', '(no text recovered for this page)'));
+        continue;
+      }
+      for (var j = 0; j < paras.length; j++) {
+        var t = paras[j], isAr = AR.test(t), p = el('p', isAr ? 'ar' : 'en', t);
+        p.setAttribute('dir', isAr ? 'rtl' : 'ltr');
+        p.setAttribute('lang', isAr ? 'ar' : 'en');
+        frag.appendChild(p);
+      }
+    }
+
+    main.textContent = '';
+    main.appendChild(frag);
+    document.title = (D.title || 'Book') + ' — Reader';
+  }
+
+  /* ---------- page jump ---------- */
+
+  function buildJump() {
+    jump.innerHTML = '';
+    var ph = el('option', null, 'Pages…');
+    ph.value = ''; ph.disabled = true; ph.selected = true;
+    jump.appendChild(ph);
+    for (var i = 0; i < D.pages.length; i++) {
+      var pg = D.pages[i], o = el('option', null, 'p. ' + pg.n + ' (' + arDigits(pg.n) + ')');
+      o.value = String(pg.n);
+      jump.appendChild(o);
+    }
+    jump.disabled = false;
+  }
+
+  jump.addEventListener('change', function () {
+    if (!jump.value) return;
+    var t = document.getElementById('pg-' + jump.value);
+    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  // keep the dropdown in sync when a page marker is clicked
+  main.addEventListener('click', function (e) {
+    var t = e.target;
+    var a = t && t.closest ? t.closest('.pgnum') : null;
+    if (!a) return;
+    var m = a.parentNode, n = m.id.slice(3);
+    for (var i = 0; i < jump.options.length; i++) {
+      if (jump.options[i].value === n) { jump.value = n; break; }
+    }
+  });
+
+  /* ---------- prefs: font size + theme ---------- */
+
+  function systemTheme() {
+    return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  }
+
+  function applyTheme(t, remember) {
+    document.documentElement.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? 'Dark' : 'Light';
+    themeBtn.setAttribute('aria-pressed', String(t === 'dark'));
+    if (remember) { prefs.theme = t; savePrefs(); }
+  }
+
+  function applyPrefs() {
+    document.documentElement.style.setProperty('--fs', prefs.fs + 'px');
+    fsDown.disabled = prefs.fs <= FS_MIN;
+    fsUp.disabled = prefs.fs >= FS_MAX;
+    applyTheme(prefs.theme || systemTheme(), false);
+  }
+
+  themeBtn.addEventListener('click', function () {
+    applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', true);
+  });
+  if (window.matchMedia) {
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    var mqHandler = function (e) { if (!prefs.theme) applyTheme(e.matches ? 'dark' : 'light', false); };
+    if (mq.addEventListener) mq.addEventListener('change', mqHandler);
+    else if (mq.addListener) mq.addListener(mqHandler);
+  }
+  fsDown.addEventListener('click', function () {
+    if (prefs.fs > FS_MIN) { prefs.fs -= FS_STEP; applyPrefs(); savePrefs(); }
+  });
+  fsUp.addEventListener('click', function () {
+    if (prefs.fs < FS_MAX) { prefs.fs += FS_STEP; applyPrefs(); savePrefs(); }
+  });
+
+  render();
+  buildJump();
+  applyPrefs();
+})();
+</script>
+</body>
+</html>

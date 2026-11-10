@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مكتبة إسلامية — Islamic Library</title>
+<style>
+  :root{
+    --bg:#faf7f2; --fg:#2b2620; --mut:#8a8177; --card:#fff; --line:#e8e0d5;
+    --acc:#0f6e56; --acc2:#8a5a00; --badge:#eef3ef;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#1a1714;--fg:#ece5da;--mut:#9a9083;--card:#241f1a;--line:#3a332a;--acc:#5fd3ae;--acc2:#e8b34b;--badge:#223029}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:'Segoe UI',Tahoma,Arial,sans-serif;line-height:1.7}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 20px 64px}
+  h1{font-size:1.7rem;margin:0 0 4px}
+  .sub{color:var(--mut);font-size:.95rem;margin-bottom:28px}
+  h2{font-size:1.15rem;margin:34px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  h2 .en{color:var(--mut);font-weight:400;font-size:.85rem}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+  a.book{display:block;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;text-decoration:none;color:var(--fg);transition:border-color .15s}
+  a.book:hover{border-color:var(--acc)}
+  .t{font-size:1.02rem;font-weight:600}
+  .t small{font-weight:400;color:var(--mut)}
+  .meta{font-size:.8rem;color:var(--mut);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .badge{font-size:.72rem;padding:1px 8px;border-radius:99px;background:var(--badge);color:var(--acc);white-space:nowrap}
+  .badge.ocr{color:var(--acc2)}
+  .badge.tr{color:#6a4fb3}
+  footer{margin-top:48px;color:var(--mut);font-size:.8rem;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>مكتبة إسلامية</h1>
+  <div class="sub">Islamic study library — bilingual readers (Arabic · English · Bahasa Melayu · Indonesia). Clean digital texts where available; Gemini-vision OCR for scans. Tap a book to read.</div>
+
+  <h2>الكتب العربية <span class="en">Arabic originals</span></h2>
+  <div class="grid" id="ar"></div>
+
+  <h2>الترجمات <span class="en">Translations</span></h2>
+  <div class="grid" id="tr"></div>
+
+  <footer>Generated locally · text provenance: born-digital editions (Shamela/thahabi/IkhwanWiki) or Gemini vision OCR of owned scans · khawatir-quraniyah: <a href="https://afflatedskills-ui.github.io/khawatir-quraniyah/" style="color:var(--acc)">github.io/khawatir-quraniyah</a></footer>
+</div>
+<script>
+const AR=[
+ ["himpunan-risalah","رسائل الإمام حسن البنا","Majmu' Rasa'il al-Imam Hasan al-Banna",212,"clean"],
+ ["hadha-al-din","هذا الدين","Hadha ad-Din · Sayyid Qutb",108,"ocr"],
+ ["khuluq-al-muslim","خلق المسلم","Khuluq al-Muslim · al-Ghazali",89,"clean"],
+ ["matha-yaani-yakan","ماذا يعني انتمائي للإسلام","Matha Ya'ni Intimai · Fathi Yakan",32,"clean"],
+ ["matn-taalim-banna","رسالة التعاليم (المتن)","Risalat at-Ta'alim · Hasan al-Banna",9,"clean"],
+ ["muqaddimah-ibn-khaldun","مقدمة ابن خلدون","Muqaddimah · Ibn Khaldun",398,"clean"],
+ ["nur-al-yaqin-khudari","نور اليقين في سيرة سيد المرسلين","Nur al-Yaqin · al-Khudhari",145,"clean"],
+ ["salim-al-aqidah","صفات الأخ المسلم: سليم العقيدة","Salim al-Aqidah",84,"clean"],
+ ["sharh-adwa","أضواء على الأصول العشرين","Sharh Adwa · 'Isam al-Bashir",105,"ocr"],
+ ["sharh-bay3a","البيعة — شرح رسالة التعاليم","Sharh al-Bay'ah",119,"ocr"],
+ ["sharh-dustur","دستور الوحدة الثقافية بين المسلمين","Dustur al-Wihda · al-Ghazali",83,"clean"],
+ ["sharh-fahm-mahmud","في فقه الإصلاح والتجديد عند الإمام حسن البنا","Fahm Usul al-Islam",200,"ocr"],
+ ["sharh-fi-afaq","دراسات منهجية هادفة في البناء","Fi Afaq at-Ta'alim",204,"ocr"],
+ ["sharh-shumul","شمول الإسلام","Shumul al-Islam · al-Qaradawi",41,"clean"],
+ ["sharh-usul-zaydan","شرح الأصول العشرين","Sharh al-Usul · Zaydan",14,"clean"],
+ ["talbis-iblis","تلبيس إبليس","Talbis Iblis · Ibn al-Jawzi",224,"clean"],
+ ["yakan-abjadiyyat","أبجديات التصور الحركي للعمل الإسلامي","Abjadiyyat · Fathi Yakan",41,"clean"],
+ ["yakan-islam-fikra","إسلام فكرة","Yakan",120,"ocr"],
+ ["yakan-islam-jins","إسلام جنس","Yakan",96,"ocr"],
+ ["yakan-istiaab","الاستيعاب — نحو وعي حركي إسلامي","al-Isti'ab · Fathi Yakan",116,"ocr"],
+ ["yakan-kayfa-nadu","كيف ندعو إلى الإسلام","Kayfa Nad'u · Fathi Yakan",170,"ocr"],
+ ["yakan-lubnaniyya","المسألة اللبنانية","al-Mas'ala al-Lubnaniyya",72,"ocr"],
+ ["yakan-makaid","العالم الإسلامي والمكائد الدولية","al-Maka'id al-Dawliyya",29,"clean"],
+ ["yakan-mishkilat","مشكلات","Mushkilat · Fathi Yakan",244,"ocr"],
+];
+const TR=[
+ ["hadha-al-din-ms","هذا الدين","Inilah Agama Ini · Bahasa Melayu",54,"ms"],
+ ["khuluq-al-muslim-en","خلق المسلم","Muslim Character · English",109,"en"],
+ ["matha-yaani-yakan-ms","ماذا يعني انتمائي للإسلام","Apa Ertinya Saya Menganut Islam · BM",90,"ms"],
+ ["himpunan-risalah-ms","رسائل الإمام حسن البنا","Majmu' Rasa'il al-Imam Hasan al-Banna · BM",327,"ms"],
+ ["muqaddimah-ibn-khaldun-ms-id","مقدمة ابن خلدون","Mukaddimah Ibn Khaldun · Melayu/Indonesia",552,"ms-id"],
+ ["nur-al-yaqin-khudari-id","نور اليقين","Nurul Yaqin · Bahasa Indonesia",270,"id"],
+ ["talbis-iblis-en","تلبيس إبليس","The Devil's Deceptions · English",224,"en"],
+ ["yakan-berjatuhan-id","المتساقطون على طريق الدعوة","Yakan · Bahasa Indonesia (original)",151,"id"],
+];
+const LANG={en:"English",ms:"Bahasa Melayu",id:"Bahasa Indonesia","ms-id":"Melayu/Indonesia"};
+function card(a){
+  const [slug,ar,en,pages,kind]=a;
+  const badge = kind==="ocr"?'<span class="badge ocr">OCR</span>':'<span class="badge">clean text</span>';
+  const tr = AR_LINKS[slug]?'<span class="badge tr">ترجمة</span>':'';
+  return `<a class="book" href="readers/${slug}/"><div class="t">${ar} <small>· ${en}</small></div><div class="meta">${pages} sections ${badge}${tr}</div></a>`;
+}
+const AR_LINKS={"hadha-al-din":"hadha-al-din-ms","khuluq-al-muslim":"khuluq-al-muslim-en","matha-yaani-yakan":"matha-yaani-yakan-ms","himpunan-risalah":"himpunan-risalah-ms","muqaddimah-ibn-khaldun":"muqaddimah-ibn-khaldun-ms-id","nur-al-yaqin-khudari":"nur-al-yaqin-khudari-id","talbis-iblis":"talbis-iblis-en"};
+document.getElementById('ar').innerHTML = AR.map(card).join('');
+document.getElementById('tr').innerHTML = TR.map(a=>{
+  const [slug,ar,en,pages,lang]=a;
+  return `<a class="book" href="readers/${slug}/"><div class="t">${ar} <small>· ${en}</small></div><div class="meta">${LANG[lang]||lang} · ${pages} sections</div></a>`;
+}).join('');
+</script>
+</body>
+</html>
